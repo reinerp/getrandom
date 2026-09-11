@@ -133,6 +133,15 @@
 //! using `rdrand` and `js` Cargo features) continue using their normal
 //! implementations even if a function is registered.
 //!
+//! ### ESP-IDF entropy prerequisites
+//!
+//! Applications must keep a native entropy source active whenever this API is
+//! used for cryptographic randomness: Wi-Fi/Bluetooth or the appropriately
+//! configured internal noise source. The bootloader's temporary entropy source
+//! is not sufficient after startup. This crate cannot safely enable that source
+//! automatically because it can conflict with ADC, I2S, and RF use. Follow the
+//! ESP-IDF random-number-generation guide for the deployed chip and IDF version.
+//!
 //! ## Early boot
 //!
 //! Sometimes, early in the boot process, the OS has not collected enough

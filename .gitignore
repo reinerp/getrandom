@@ -1,4 +1,5 @@
 /target
+/review-harness/target
 **/*.rs.bk
 Cargo.lock
 *.ts

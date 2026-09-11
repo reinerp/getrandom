@@ -18,6 +18,10 @@ use core::{
 const FILE_PATH: &str = "/dev/urandom\0";
 const FD_UNINIT: usize = usize::max_value();
 
+#[cfg(any(target_os = "android", target_os = "linux"))]
+#[path = "linux_poll.rs"]
+mod linux_poll;
+
 pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     let fd = get_rng_fd()?;
     sys_fill_exact(dest, |buf| unsafe {
@@ -82,8 +86,11 @@ fn wait_until_rng_ready() -> Result<(), Error> {
         // A negative timeout means an infinite timeout.
         let res = unsafe { libc::poll(&mut pfd, 1, -1) };
         if res >= 0 {
-            debug_assert_eq!(res, 1); // We only used one fd, and cannot timeout.
-            return Ok(());
+            return if linux_poll::is_ready(res, pfd.revents) {
+                Ok(())
+            } else {
+                Err(Error::UNEXPECTED)
+            };
         }
         let err = crate::util_libc::last_os_error();
         match err.raw_os_error() {
