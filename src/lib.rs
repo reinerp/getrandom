@@ -38,7 +38,7 @@ pub use crate::error::{Error, RawOsError};
 /// Attribute macros for overwriting the core functionality of this crate.
 ///
 /// This allows `getrandom` to provide a default implementation and a common interface
-/// for all crates to use, while giving users a safe way to override that default where required.
+/// for all crates to use, while allowing explicit overrides where required.
 ///
 /// Must be enabled via the `extern_impl` opt-in backend, as this functionality
 /// is currently limited to nightly.
@@ -48,7 +48,7 @@ pub use crate::error::{Error, RawOsError};
 /// ```rust
 /// # use core::mem::MaybeUninit;
 /// # #[cfg(getrandom_backend = "extern_impl")]
-/// #[getrandom::implementation::fill_uninit]
+/// #[unsafe(getrandom::implementation::fill_uninit)]
 /// fn my_fill_uninit_implementation(
 ///     dest: &mut [MaybeUninit<u8>]
 /// ) -> Result<(), getrandom::Error> {

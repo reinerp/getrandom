@@ -208,7 +208,7 @@ with an attribute macro from the `implementation` module.
 use core::mem::MaybeUninit;
 
 #[cfg(getrandom_backend = "extern_impl")]
-#[getrandom::implementation::fill_uninit]
+#[unsafe(getrandom::implementation::fill_uninit)]
 fn my_fill_uninit_implementation(
     dest: &mut [MaybeUninit<u8>]
 ) -> Result<(), getrandom::Error> {
@@ -219,6 +219,9 @@ fn my_fill_uninit_implementation(
 
 For further details on what a suitable implementation for `fill_uninit` may look
 like, see [custom backend].
+
+Implementing `fill_uninit` is unsafe: the implementation must initialize every
+byte before returning `Ok(())`, and must never de-initialize bytes, even on error.
 
 `getrandom` will provide a default implementation for `u32` and `u64`, but does
 not currently provide a default for `fill_uninit`, even if one is normally

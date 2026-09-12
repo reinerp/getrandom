@@ -1,4 +1,5 @@
 /target
+/review-harness/target/
 **/*.rs.bk
 nopanic_check/Cargo.lock
 nopanic_check/target/

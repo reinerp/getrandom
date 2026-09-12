@@ -3,7 +3,19 @@ use crate::Error;
 use core::mem::MaybeUninit;
 
 /// Declares this function as an external implementation of [`fill_uninit`](crate::fill_uninit).
-#[eii(fill_uninit)]
+///
+/// # Safety
+/// The implementation must initialize every byte before returning `Ok(())`
+/// and must never de-initialize any byte, including on error.
+///
+/// ```compile_fail
+/// use core::mem::MaybeUninit;
+/// #[getrandom::implementation::fill_uninit]
+/// fn implementation(_: &mut [MaybeUninit<u8>]) -> Result<(), getrandom::Error> {
+///     Err(getrandom::Error::UNSUPPORTED)
+/// }
+/// ```
+#[unsafe_eii(fill_uninit)]
 pub(crate) fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error>;
 
 /// Declares this function as an external implementation of [`u32`](crate::u32).
