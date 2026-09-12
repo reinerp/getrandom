@@ -82,8 +82,11 @@ fn wait_until_rng_ready() -> Result<(), Error> {
         // A negative timeout means an infinite timeout.
         let res = unsafe { libc::poll(&mut pfd, 1, -1) };
         if res >= 0 {
-            debug_assert_eq!(res, 1); // We only used one fd, and cannot timeout.
-            return Ok(());
+            return if res == 1 && pfd.revents == libc::POLLIN {
+                Ok(())
+            } else {
+                Err(Error::UNEXPECTED)
+            };
         }
         let err = crate::util_libc::last_os_error();
         match err.raw_os_error() {

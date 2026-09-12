@@ -35,8 +35,8 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
             )
         };
         let ret = ret as u32;
-        // NTSTATUS codes use the two highest bits for severity status.
-        if ret >> 30 == 0b11 {
+        // NT_SUCCESS excludes warnings as well as errors.
+        if ret & (1 << 31) != 0 {
             // Failed. Try RtlGenRandom as a fallback.
             #[cfg(not(target_vendor = "uwp"))]
             {
@@ -46,14 +46,11 @@ pub fn getrandom_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
                     continue;
                 }
             }
-            // We zeroize the highest bit, so the error code will reside
-            // inside the range designated for OS codes.
-            let code = ret ^ (1 << 31);
-            // SAFETY: the second highest bit is always equal to one,
-            // so it's impossible to get zero. Unfortunately the type
-            // system does not have a way to express this yet.
-            let code = unsafe { NonZeroU32::new_unchecked(code) };
-            return Err(Error::from(code));
+            // Preserve the OS-code range without assuming a warning's
+            // lower bits are nonzero.
+            return Err(NonZeroU32::new(ret & 0x7fff_ffff)
+                .map(Error::from)
+                .unwrap_or(Error::UNEXPECTED));
         }
     }
     Ok(())
